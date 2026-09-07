@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>デジタル名刺 | 井手下 孝造</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        /* 名刺の土台 */
+        .card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 380px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            text-align: center;
+        }
+
+        /* ヘッダー部分（会社ロゴ画像 ＋ 歯車アイコン） */
+        .card-header {
+            background: #ffffff;
+            padding: 25px 20px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* 左右に綺麗に配置 */
+            padding-left: 25px;
+            padding-right: 25px;
+            border-bottom: 2px solid #eeeeee;
+        }
+        
+        /* 会社ロゴ画像用スタイル */
+        .company-logo {
+            max-height: 40px;
+            max-width: 180px;
+            object-fit: contain;
+        }
+
+        /* 顔写真 */
+        .profile-img {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 5px solid #ffffff;
+            margin-top: -55px;
+            object-fit: cover;
+            background-color: #dddddd;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* テキストコンテンツ部分 */
+        .card-content {
+            padding: 10px 30px 40px;
+        }
+
+        .name {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 15px 0 5px;
+            color: #333333;
+        }
+
+        .title {
+            font-size: 14px;
+            color: #777777;
+            margin-bottom: 30px;
+        }
+
+        /* コピー可能な連絡先リスト */
+        .contact-info {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+        }
+
+        .contact-info li {
+            margin-bottom: 12px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            border: 1px solid #eeeeee;
+            font-size: 14px;
+            color: #555555;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .contact-info li:hover {
+            background-color: #eef5f9;
+            border-color: #d1e3ef;
+            transform: translateY(-1px);
+        }
+
+        .contact-info li:active {
+            transform: scale(0.98);
+        }
+
+        .contact-info li .icon {
+            margin-right: 12px;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .contact-info li .text {
+            flex-grow: 1;
+            word-break: break-all;
+            line-height: 1.4;
+        }
+
+        .contact-info li .copy-btn {
+            margin-left: 10px;
+            font-size: 16px;
+            color: #aaaaaa;
+            flex-shrink: 0;
+            transition: color 0.2s;
+        }
+
+        .contact-info li:hover .copy-btn {
+            color: #3498db;
+        }
+
+        /* コピー完了のトースト通知 */
+        .copy-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(50, 50, 50, 0.9);
+            color: #ffffff;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .copy-toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <!-- ▼ ヘッダー（会社ロゴ画像 ＋ 動く歯車アイコン） ▼ -->
+        <div class="card-header">
+            <!-- src="..." の部分を、ご自身の会社ロゴ画像のファイル名（例: logo.png）に変更してください -->
+            <img src="logo" alt="会社ロゴ" class="company-logo">
+            <div id="header-gear-icon"></div>
+        </div>
+        
+        <!-- ▼ 顔写真 ▼ -->
+        <!-- src="..." の部分を、ご自身の顔写真のファイル名（例: profile.jpg）に変更してください -->
+        <img src="profile.jpg" alt="プロフィール写真" class="profile-img">
+        
+        <div class="card-content">
+            <!-- ▼ プロフィール情報 ▼ -->
+            <h1 class="name">井手下 孝造</h1>
+            <p class="title">株式会社信電舎 / 技術部</p>
+            
+            <!-- ▼ クリックしてコピー可能な連絡先リスト ▼ -->
+            <ul class="contact-info">
+                <li onclick="copyToClipboard(this)" title="クリックしてコピー">
+                    <span class="icon">📧</span>
+                    <span class="text">ideshita@shindensha.co.jp</span>
+                    <span class="copy-btn">📋</span>
+                </li>
+                <li onclick="copyToClipboard(this)" title="クリックしてコピー">
+                    <span class="icon">🏢</span>
+                    <span class="text">東京都江戸川区南小岩8-6-7</span>
+                    <span class="copy-btn">📋</span>
+                </li>
+                <li onclick="copyToClipboard(this)" title="クリックしてコピー">
+                    <span class="icon">🌐</span>
+                    <span class="text">https://shindensha.co.jp/</span>
+                    <span class="copy-btn">📋</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- コピー完了時の通知ポップアップ -->
+    <div id="copy-toast" class="copy-toast">コピーしました！</div>
+
+    <script>
+        /*
+          ===============================================================
+          歯車アイコン描画関数（グレー版・同歯数）
+          ===============================================================
+        */
+        function renderGearIcon(containerId, options = {}) {
+            const height   = options.height ?? 48;
+            const module   = options.module ?? 6;
+            const zSmall   = options.zSmall ?? 12;
+            const zLarge   = options.zLarge ?? 12;
+            const duration = options.duration ?? 18;
+            const colorSmall = options.colorSmall ?? '#777777';
+            const colorLarge = options.colorLarge ?? '#999999';
+            const hubColor    = options.hubColor ?? '#666666';
+
+            const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+            const g = gcd(zSmall, zLarge);
+            const turnsSmall = zLarge / g; 
+            const turnsLarge = zSmall / g; 
+
+            const meshOffset = 180 / zLarge;
+
+            const gears = [
+                { z: zSmall, color: colorSmall, fromDeg: 0, toDeg: turnsSmall * 360 },
+                { z: zLarge, color: colorLarge, fromDeg: meshOffset, toDeg: meshOffset - turnsLarge * 360 }
+            ];
+
+            const rSmall = (zSmall * module) / 2;
+            const rLarge = (zLarge * module) / 2;
+            const centerDist = rSmall + rLarge;
+            const rOuterMax = Math.max(rSmall, rLarge) + module;
+
+            const xSmall = rOuterMax + 6;
+            const xLarge = xSmall + centerDist;
+            const svgW = xLarge + rOuterMax + 6;
+            const svgH = (rOuterMax + 6) * 2;
+            const positions = [xSmall, xLarge];
+
+            const uid = containerId.replace(/[^a-zA-Z0-9_]/g, '');
+
+            let svgHTML = `
+                <svg viewBox="0 0 ${svgW} ${svgH}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <filter id="gearShadow_${uid}" x="-30%" y="-30%" width="160%" height="160%">
+                    <feDropShadow dx="1" dy="1.5" stdDeviation="1" flood-opacity="0.35"/>
+                    </filter>
+                </defs>`;
+
+            gears.forEach((gear, i) => {
+                const rPitch = (gear.z * module) / 2;
+                const rOuter = rPitch + module;
+                const rRoot  = rPitch - 1.25 * module;
+
+                let teethPath = '';
+                for (let t = 0; t < gear.z; t++) {
+                    const angle = t * (360 / gear.z);
+                    teethPath += `<path d="M -${module},-${rRoot} L -${module / 2},-${rOuter} L ${module / 2},-${rOuter} L ${module},-${rRoot} Z" fill="${gear.color}" transform="rotate(${angle})" />`;
+                }
+
+                svgHTML += `
+                <g transform="translate(${positions[i]}, ${svgH / 2})" filter="url(#gearShadow_${uid})">
+                    <g>
+                    <circle cx="0" cy="0" r="${rRoot}" fill="${gear.color}" />
+                    ${teethPath}
+                    <circle cx="0" cy="0" r="${rPitch * 0.3}" fill="${hubColor}" />
+                    <animateTransform attributeName="transform" attributeType="XML" type="rotate"
+                        from="${gear.fromDeg} 0 0" to="${gear.toDeg} 0 0"
+                        dur="${duration}s" repeatCount="indefinite" />
+                    </g>
+                </g>`;
+            });
+
+            svgHTML += `</svg>`;
+            document.getElementById(containerId).innerHTML = svgHTML;
+        }
+
+        // 歯車の描画実行
+        renderGearIcon("header-gear-icon", { 
+            height: 36, 
+            colorSmall: "#8c9298", 
+            colorLarge: "#aab0b6", 
+            hubColor: "#555b61" 
+        });
+
+        /*
+          ===============================================================
+          クリックしてコピーする機能
+          ===============================================================
+        */
+        let toastTimeout;
+        function copyToClipboard(element) {
+            const textToCopy = element.querySelector('.text').innerText;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const toast = document.getElementById('copy-toast');
+                toast.classList.add('show');
+                
+                clearTimeout(toastTimeout);
+                toastTimeout = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2000);
+            }).catch(err => {
+                console.error('コピーに失敗しました', err);
+                alert('クリップボードへのコピーに失敗しました。');
+            });
+        }
+    </script>
+</body>
+</html>
